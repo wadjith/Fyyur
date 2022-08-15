@@ -89,10 +89,32 @@
     <!-- Begin page content -->
     <main id="content" role="main" class="container">
 
-      {% with messages = get_flashed_messages() %}
+      {% with messages = get_flashed_messages(category_filter=["info"]) %}
         {% if messages %}
           {% for message in messages %}
             <div class="alert alert-block alert-info fade in">
+              <a class="close" data-dismiss="alert">&times;</a>
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <!-- Flash warning messages -->
+      {% with messages = get_flashed_messages(category_filter=["warning"]) %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-block alert-warning fade in">
+              <a class="close" data-dismiss="alert">&times;</a>
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+      <!-- Flash error messages -->
+      {% with messages = get_flashed_messages(category_filter=["error"]) %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-block alert-danger fade in">
               <a class="close" data-dismiss="alert">&times;</a>
               {{ message }}
             </div>
