@@ -109,9 +109,7 @@ def venues():
       # first element of data
       venueObj["id"] = venue.id
       venueObj["name"] = venue.name
-      # Get the upcoming shows
-      query = Show.query.filter(Show.venue_id == venue.id).filter(Show.start_time > datetime.now())
-      venueObj["num_upcoming_shows"] = query.count()
+      venueObj["num_upcoming_shows"] = get_num_upcoming_shows_for_venue(venue.id)
 
       dataObj["city"] = venue.city
       dataObj["state"] = venue.state
@@ -125,17 +123,14 @@ def venues():
           # City is already in data. Append to venues list
           venueObj["id"] = venue.id
           venueObj["name"] = venue.name
-          # Get the upcoming shows
-          query = Show.query.filter(Show.venue_id == venue.id).filter(Show.start_time > datetime.now())
-          venueObj["num_upcoming_shows"] = query.count()
+          venueObj["num_upcoming_shows"] = get_num_upcoming_shows_for_venue(venue.id)
           d['venues'].append(venueObj)
           break
         else:
           # append a new element in data
           venueObj["id"] = venue.id
           venueObj["name"] = venue.name
-          query = Show.query.filter(Show.venue_id == venue.id).filter(Show.start_time > datetime.now())
-          venueObj["num_upcoming_shows"] = query.count()
+          venueObj["num_upcoming_shows"] = get_num_upcoming_shows_for_venue(venue.id)
 
           dataObj["city"] = venue.city
           dataObj["state"] = venue.state
@@ -147,17 +142,18 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on venues with partial string search. Ensure it is case-insensitive.
-  # seach for Hop should return "The Musical Hop".
-  # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
-  response={
-    "count": 1,
-    "data": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }
+  response = {"count": 0, "data": []}
+  search_term = "%{}%".format(request.form.get('search_term', ''))
+  venues = Venue.query.filter(Venue.name.ilike(search_term)).all()
+  if len(venues) > 0:
+    response["count"] = len(venues)
+    for venue in venues:
+      obj = {}
+      obj["id"] = venue.id
+      obj["name"] = venue.name
+      obj["num_upcoming_shows"] = get_num_upcoming_shows_for_venue(venue.id)
+      response["data"].append(obj)
+      
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))
 
 @app.route('/venues/<int:venue_id>')
@@ -502,8 +498,6 @@ def create_artist_submission():
 
 @app.route('/shows')
 def shows():
-  # displays list of shows at /shows
-  # TODO: replace with real venues data.
   data = []
   shows = Show.query.all()
   for show in shows:
@@ -517,7 +511,6 @@ def shows():
     obj["artist_image_link"] = artist.image_link
     obj["start_time"] = show.start_time.isoformat()
     data.append(obj)
-
   return render_template('pages/shows.html', shows=data)
 
 @app.route('/shows/create')
@@ -565,6 +558,16 @@ if not app.debug:
     app.logger.addHandler(file_handler)
     app.logger.info('errors')
 
+#----------------------------------------------------------------------------#
+# Private functions
+#----------------------------------------------------------------------------#
+def get_num_upcoming_shows_for_venue(venue_id):
+  query = Show.query.filter(Show.venue_id == venue_id).filter(Show.start_time > datetime.now())
+  return query.count()
+
+def get_num_upcoming_shows_for_artist(artist_id):
+  query = Show.query.filter(Show.artist_id == artist_id).filter(Show.start_time > datetime.now())
+  return query.count()
 #----------------------------------------------------------------------------#
 # Launch.
 #----------------------------------------------------------------------------#
