@@ -98,30 +98,52 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+  venueList = Venue.query.all()
+  print(f'Number of venue = {len(venueList)}')
+  data = []
+  for venue in venueList:
+    dataObj = {'city': '', 'state': '', 'venues': []}
+    venueObj = {'id': 0, 'name': '', 'num_upcoming_shows': 0}
+    # construct the data result
+    if len(data) == 0:
+      # first element of data
+      venueObj["id"] = venue.id
+      venueObj["name"] = venue.name
+      # Get the upcoming shows
+      query = Show.query.filter(Show.venue_id == venue.id).filter(Show.start_time > datetime.now())
+      venueObj["num_upcoming_shows"] = query.count()
+
+      dataObj["city"] = venue.city
+      dataObj["state"] = venue.state
+      dataObj["venues"] = [venueObj]
+      data = [dataObj]
+
+    else:
+    # Loop data in order to save the venue
+      for d in data:
+        if d["city"] == venue.city:
+          # City is already in data. Append to venues list
+          venueObj["id"] = venue.id
+          venueObj["name"] = venue.name
+          # Get the upcoming shows
+          query = Show.query.filter(Show.venue_id == venue.id).filter(Show.start_time > datetime.now())
+          venueObj["num_upcoming_shows"] = query.count()
+          d['venues'].append(venueObj)
+          break
+        else:
+          # append a new element in data
+          venueObj["id"] = venue.id
+          venueObj["name"] = venue.name
+          query = Show.query.filter(Show.venue_id == venue.id).filter(Show.start_time > datetime.now())
+          venueObj["num_upcoming_shows"] = query.count()
+
+          dataObj["city"] = venue.city
+          dataObj["state"] = venue.state
+          dataObj["venues"] = [venueObj]
+          data.append(dataObj)
+          break
+
+  return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
