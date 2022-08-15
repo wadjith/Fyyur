@@ -76,6 +76,30 @@
 </section>
 
 <a href="/venues/{{ venue.id }}/edit"><button class="btn btn-primary btn-lg">Edit</button></a>
+<a href="#"><button id="delete-btn" data-id="{{ venue.id }}" class="btn btn-danger btn-lg">Delete</button></a>
+<!--form method="delete" action="/venues/{{ venue.id }}">
+	<input type="submit" value="Delete" class="btn btn-danger btn-lg" />
+</form-->
+
+<script>
+	const deleteBtn = document.getElementById('delete-btn');
+	deleteBtn.onclick = function(e) {
+		e.preventDefault()
+		const base_url = window.location.origin;
+		const venueId = e.target.dataset.id;
+		console.log("venue id = " + venueId);
+		if(confirm("Do you really want to delete ?")) {
+			fetch('/venues/'+ venueId,{
+				method: 'DELETE'
+			}).then(function() {
+				window.location = base_url;
+			})
+			.catch(function(e) {
+				console.error(e);
+			});
+		}
+	};
+</script>
 
 {% endblock %}
 
