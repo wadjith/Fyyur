@@ -539,11 +539,11 @@ if not app.debug:
 # Private functions
 #----------------------------------------------------------------------------#
 def get_num_upcoming_shows_for_venue(venue_id):
-  query = Show.query.filter(Show.venue_id == venue_id).filter(Show.start_time > datetime.now())
+  query = Show.query.join(Venue).filter(Show.venue_id == venue_id).filter(Show.start_time > datetime.now())
   return query.count()
 
 def get_num_upcoming_shows_for_artist(artist_id):
-  query = Show.query.filter(Show.artist_id == artist_id).filter(Show.start_time > datetime.now())
+  query = Show.query.join(Artist).filter(Show.artist_id == artist_id).filter(Show.start_time > datetime.now())
   return query.count()
 #----------------------------------------------------------------------------#
 # Launch.
